@@ -20,8 +20,7 @@ void setup()
     manager.writeReady();
 }
 
-void set_azimuth(int new_pos)
-{
+void set_azimuth(int new_pos) {
     pos = new_pos;
     azimuth_servo.write(pos);
 }
@@ -38,12 +37,14 @@ void loop()
         }
         else if (status == 1)  // stop event
         {
-            azimuth_servo.detach()
+            azimuth_servo.detach();
         }
         else if (status == 0)  // user command
         {
+            int new_pos = command.substring(1).toInt();
+
             switch(command.charAt(0)) {
-                case 'a': set_azimuth(command.substring(1).toInt()); break;
+                case 'a': set_azimuth(new_pos); break;
             }
         }
     }

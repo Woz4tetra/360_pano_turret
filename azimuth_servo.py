@@ -26,7 +26,7 @@ class AzimuthServo:
 
         time.sleep(0.25)
         if not self.wait_for_packet(READY_ASK_COMMAND, READY_MESSAGE):
-            raise WaitForPacketException
+            raise WaitForPacketException("Attempted to get ready packet, but timed out")
         self.serial_ref.write(START_COMMAND)
 
     def end(self):
@@ -34,7 +34,7 @@ class AzimuthServo:
         self.serial_ref.close()
 
     def update(self):
-        if self.serial_ref.in_waiting() > 0:
+        if self.serial_ref.in_waiting > 0:
             serial_buffer = self.serial_ref.readline()
             if serial_buffer[0] == '-':
                 print("message: %s", serial_buffer.substr(1).c_str())
@@ -52,17 +52,18 @@ class AzimuthServo:
         begin = now
         prev_write_time = now
 
-        serial_buffer = ""
+        serial_buffer = b""
 
         while now - begin < 10.0:
-            if self.serial_ref.in_waiting() > 0:
-                serial_buffer += self.serial_ref.read(1)
-                if serial_buffer[-1] == '\n':
-                    if serial_buffer == response_packet:
-                        return True
+            if self.serial_ref.in_waiting > 0:
+                serial_buffer = self.serial_ref.readline()
+                if serial_buffer == response_packet:
+                    return True
 
             if now - prev_write_time > 2.0:
+                prev_write_time = now
                 self.serial_ref.write(ask_packet)
+                print("Writing ask packet '%s' again. Buffer: %s" % (ask_packet, serial_buffer))
             now = time.time()
             time.sleep(0.005)
 
